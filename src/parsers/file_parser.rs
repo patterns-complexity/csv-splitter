@@ -19,12 +19,14 @@ pub fn files_to_bytes(files: Vec<File>) -> Vec<Vec<u8>> {
     return bytes;
 }
 
-pub fn bytes_to_chunks(files: Vec<Vec<u8>>, granularity: usize) -> Vec<Vec<u8>> {
-    let mut chunks: Vec<Vec<u8>> = Vec::new();
+pub fn bytes_to_chunks(files: Vec<Vec<u8>>, granularity: usize) -> Vec<Vec<Vec<u8>>> {
+    let mut chunked_file: Vec<Vec<Vec<u8>>> = Vec::new();
 
     for file in files {
         let mut line_count: usize = 0;
         let mut chunk: Vec<u8> = Vec::new();
+        let mut chunks: Vec<Vec<u8>> = Vec::new();
+
         for byte in file {
             chunk.push(byte);
             if byte == 10 { 
@@ -36,10 +38,13 @@ pub fn bytes_to_chunks(files: Vec<Vec<u8>>, granularity: usize) -> Vec<Vec<u8>> 
                 line_count = 0;
             }
         }
+        
         if chunk.len() > 0 {
             chunks.push(chunk);
         }
+
+        chunked_file.push(chunks);
     }
     
-    return chunks;
+    return chunked_file;
 }
