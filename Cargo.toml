@@ -3,7 +3,7 @@ name = "csv-splitter"
 description = "Splits CSV files into parts based on provided chunk size (in lines). Capable of batch splitting, but it doesn't differentiate between files yet during output."
 license = "MIT"
 authors = ["patterns-complexity"]
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 repository = "https://github.com/patterns-complexity/csv-splitter.git"
 
