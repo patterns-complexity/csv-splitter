@@ -1,8 +1,6 @@
 use std::error::Error;
 use std::path::Path;
 use getopts::Options;
-use dotenv::dotenv;
-use dotenv::var;
 
 #[derive(Debug)]
 pub enum ParamError {
@@ -19,7 +17,7 @@ fn create_parameters() -> Result<Options, Box<dyn Error>> {
     let mut opts = Options::new();
     opts.optflag("h", "help", "print this help menu");
     opts.optflag("v", "version", "print the version");
-    opts.optopt("d", "directory", "set the input directory", "DIRECTORY");
+    opts.optopt("i", "input", "set the input directory", "INPUT");
     opts.optopt("o", "output", "set the output directory", "OUTPUT");
     opts.optopt("g", "granularity", "each chunk's size (in lines)", "GRANULARITY");
     Ok(opts)
@@ -31,7 +29,6 @@ fn print_help(opts: Options) {
 }
 
 fn parse_parameters() -> Result<[String; 3], ParamError> {
-    dotenv().ok();
 
     let Ok(opts) = create_parameters() else {
         return Err(ParamError::ParamInitFailed);    
@@ -40,20 +37,18 @@ fn parse_parameters() -> Result<[String; 3], ParamError> {
     let args: Vec<String> = std::env::args().collect();
 
     let Ok(matches) = opts.parse(&args[1..]) else {
-        print_help(opts);
-        std::process::exit(0);
+        println!("Failed to parse parameters");
+        for arg in args {
+            println!("{}", arg);
+        }
+        return Err(ParamError::ParamInitFailed);
     };
+
     if matches.opt_present("h") {
         print_help(opts);
-        std::process::exit(0);
-    }
-    if matches.opt_present("v") {
-        let version = var("CSV_SPLITTER_VERSION").unwrap();
-        println!("csv-splitter v{}", version);
-        std::process::exit(0);
     }
 
-    let Some(dir) = matches.opt_str("d") else
+    let Some(dir) = matches.opt_str("i") else
         { return Err(ParamError::NoDirectory); };
 
     if !Path::new(&dir).is_dir()
@@ -82,7 +77,7 @@ pub fn get_parameters() -> [String; 3] {
         Err(e) => {
             match e {
                 ParamError::NoDirectory => {
-                    println!("No directory specified");
+                    println!("No input directory specified");
                     std::process::exit(1);
                 },
                 ParamError::DirectoryDoesNotExist => {

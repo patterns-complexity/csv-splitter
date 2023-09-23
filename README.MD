@@ -26,13 +26,13 @@ $ ./csv-splitter -h
 ## Usage and help
 
 ```bash
-$ csv-splitter -d <input_directory> -o <output_directory> -g <granularity>
+$ csv-splitter -i <input_directory> -o <output_directory> -g <granularity>
 ```
 
 or:
 
 ```bash
-$ csv-splitter --directory <input_directory> --output <output_directory> --granularity <granularity>
+$ csv-splitter --input <input_directory> --output <output_directory> --granularity <granularity>
 ```
 
 help:
@@ -44,13 +44,13 @@ $ csv-splitter -h
 ## Arguments
 | Short form | Long form | Description |
 | --- | --- | --- |
-| -d | --directory | The directory containing the CSV files to split |
+| -i | --input | The directory containing the CSV files to split |
 | -o | --output | The directory to output the split files to |
 | -g | --granularity | The number of lines to split the CSV files by |
 
 ## Example
 ```bash
-$ csv-splitter -d ./input -o ./output -g 500
+$ csv-splitter -i ./input -o ./output -g 500
 ```
 
 ## License
