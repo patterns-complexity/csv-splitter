@@ -11,15 +11,18 @@ pub enum ParamError {
     NoGranularity,
     GranularityMustBeANumber,
     ParamInitFailed,
+    NoQueue,
+    NoQueueURL,
 }
 
 fn create_parameters() -> Result<Options, Box<dyn Error>> {
     let mut opts = Options::new();
     opts.optflag("h", "help", "print this help menu");
-    opts.optflag("v", "version", "print the version");
     opts.optopt("i", "input", "set the input directory", "INPUT");
     opts.optopt("o", "output", "set the output directory", "OUTPUT");
     opts.optopt("g", "granularity", "each chunk's size (in lines)", "GRANULARITY");
+    opts.optopt("q", "queue_name", "post chunks to this AMQP queue (requires -u)", "QUEUE_NAME");
+    opts.optopt("u", "amqp_url", "set the AMQP queue url", "amqp://user:password@host:port/vhost");
     Ok(opts)
 }
 
@@ -28,7 +31,7 @@ fn print_help(opts: Options) {
     print!("{}", opts.usage(&brief));
 }
 
-fn parse_parameters() -> Result<[String; 3], ParamError> {
+fn parse_parameters() -> Result<[String; 5], ParamError> {
 
     let Ok(opts) = create_parameters() else {
         return Err(ParamError::ParamInitFailed);    
@@ -36,13 +39,7 @@ fn parse_parameters() -> Result<[String; 3], ParamError> {
 
     let args: Vec<String> = std::env::args().collect();
 
-    let Ok(matches) = opts.parse(&args[1..]) else {
-        println!("Failed to parse parameters");
-        for arg in args {
-            println!("{}", arg);
-        }
-        return Err(ParamError::ParamInitFailed);
-    };
+    let Ok(matches) = opts.parse(&args[1..]) else { return Err(ParamError::ParamInitFailed); };
 
     if matches.opt_present("h") {
         print_help(opts);
@@ -57,6 +54,27 @@ fn parse_parameters() -> Result<[String; 3], ParamError> {
     let Some(output) = matches.opt_str("o") else
         { return Err(ParamError::NoOutputDirectory); };
 
+    let queue_name: String;
+    let amqp_url: String;
+
+    if matches.opt_present("q") {
+        if !matches.opt_present("u")
+            { return Err(ParamError::NoQueueURL); }
+
+        queue_name = match matches.opt_str("q") {
+            Some(q) => q,
+            None => return Err(ParamError::NoQueue),
+        };
+
+        amqp_url = match matches.opt_str("u") {
+            Some(u) => u,
+            None => return Err(ParamError::NoQueueURL),
+        };
+    } else {
+        queue_name = String::from("");
+        amqp_url = String::from("");
+    }
+
     if !Path::new(&output).is_dir()
         { return Err(ParamError::OutputDirectoryDoesNotExist); }
 
@@ -66,10 +84,10 @@ fn parse_parameters() -> Result<[String; 3], ParamError> {
     if granularity.parse::<u32>().is_err()
         { return Err(ParamError::GranularityMustBeANumber); }
 
-    Ok([dir, output, granularity])
+    Ok([dir, output, granularity, queue_name, amqp_url])
 }
 
-pub fn get_parameters() -> [String; 3] {
+pub fn get_parameters() -> [String; 5] {
     let params_result = parse_parameters();
 
     match params_result {
@@ -86,6 +104,14 @@ pub fn get_parameters() -> [String; 3] {
                 },
                 ParamError::NoOutputDirectory => {
                     println!("No output directory specified");
+                    std::process::exit(1);
+                },
+                ParamError::NoQueue => {
+                    println!("Queue not enabled");
+                    std::process::exit(1);
+                },
+                ParamError::NoQueueURL => {
+                    println!("No queue url specified");
                     std::process::exit(1);
                 },
                 ParamError::OutputDirectoryDoesNotExist => {

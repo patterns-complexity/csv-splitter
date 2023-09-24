@@ -1,6 +1,7 @@
-use std::{path::Path, io::Write, fs::File};
+use std::path::Path;
+use tokio::{fs::File, io::AsyncWriteExt};
 
-pub fn save_bytes(files: Vec<Vec<Vec<u8>>>, output_path: &Path) {
+pub async fn save_bytes(files: Vec<Vec<Vec<u8>>>, output_path: &Path) -> () {
     let mut file_counter: usize = 0;
     for file in files {
         file_counter += 1;
@@ -15,12 +16,12 @@ pub fn save_bytes(files: Vec<Vec<Vec<u8>>>, output_path: &Path) {
                         chunk_counter
                     )
                 )
-            ) {
+            ).await {
                 Ok(file) => file,
                 Err(e) => panic!("Error: {}", e),
             };
 
-            match file.write_all(&chunk) {
+            match file.write_all(&chunk).await {
                 Ok(_) => (),
                 Err(e) => panic!("Error: {}", e),
             }

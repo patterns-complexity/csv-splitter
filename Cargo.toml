@@ -1,9 +1,9 @@
 [package]
 name = "csv-splitter"
-description = "Splits CSV files into parts based on provided chunk size (in lines). Capable of batch splitting, but it doesn't differentiate between files yet during output."
+description = "Splits CSV files into chunks by line count. Supports chunk upload to RabbitMQ."
 license = "MIT"
 authors = ["patterns-complexity"]
-version = "0.1.1"
+version = "0.2.1"
 edition = "2021"
 repository = "https://github.com/patterns-complexity/csv-splitter.git"
 
@@ -13,3 +13,5 @@ chardet = "0.2.4"
 dotenv = "0.15.0"
 encoding_rs = "0.8.33"
 getopts = "0.2.21"
+lapin = "2.3.1"
+tokio = { version = "1.32.0", features = ["full"] }
